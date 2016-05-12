@@ -41,8 +41,8 @@ header .new-list:hover {
 article {
 	float: left;
 	display: inline;
-	width: 25%;
-	margin: 15px 3%;
+	width: 28%;
+	margin: 10px 2%;
 	min-height: 260px; }
 
 .todo-inner {
