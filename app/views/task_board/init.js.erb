@@ -47,10 +47,19 @@ refresh();
 
 
 /* -- User experience ------------------------------------------------- */
-
-function set_listener(){
-  $('li').off();
+function off_listener(){
   $('article .todo-inner').off();
+// On enter
+  $('h3, span[contenteditable=true]').off();
+
+  $('span[contenteditable=true]').off();
+  $('.add-todo').off();
+  $('input[type=checkbox]').off();
+  $('nav .delete').off();
+
+}
+function set_listener(){
+  off_listener();
   $('li').on('mouseenter mouseleave', function (event) {
     if (event.type == 'mouseenter') {
       $(this).find('span.move').stop(true, true).fadeIn(500);
@@ -110,6 +119,177 @@ function set_listener(){
       refresh();
     }
   });
+
+  $('#todo-lists').on("sortstop", function (event, ui) {
+    if (event.target.nodeName == 'DIV') {
+      var newPosition = ui.item.index();
+      var oldPosition = ui.item.attr('id').replace('list-', '');
+
+
+      var theList = todos.lists.slice(oldPosition);
+      todos.lists.splice(oldPosition, 1);
+      todos.lists.splice(newPosition, 0, theList[0])
+      localStorage.setItem("todos", JSON.stringify(todos.lists));
+
+      var i = 0;
+      $('#todo-lists article').each(function () {
+        $(this).attr('id', 'list-' + i);
+        i++;
+      });
+    }
+  });
+
+
+
+  /* -- New positon(todo) ------------------------------------------------ */
+
+
+  $('ul').on("sortstop", function (event, ui) {
+    if (event.target.nodeName == 'UL') {
+      var oldPos = ui.item.find('input').attr('class').replace('todo-', '');
+      var newPos = ui.item.index();
+      var theList = ui.item.parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
+
+      var theTodo = todos.lists[theList].todos.slice(oldPos);
+      todos.lists[theList].todos.splice(oldPos, 1);
+      todos.lists[theList].todos.splice(newPos, 0, theTodo[0])
+      localStorage.setItem("todos", JSON.stringify(todos.lists));
+
+      var i = 0;
+      $('#list-' + theList + ' ul li input').each(function () {
+        $(this).attr('class', 'todo-' + i);
+        i++;
+      });
+    }
+  });
+
+  $('ul').on("sortreceive", function (event, ui) {
+    if (event.target.nodeName == 'UL') {
+      var oldPos = ui.item.find('input').attr('class').replace('todo-', '');
+      var oldList = ui.sender.parent('div').parent('article').attr('id').replace('list-', '');
+
+      var newList = ui.item.parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
+      var newPos = ui.item.index();
+
+      var theTodo = todos.lists[oldList].todos.slice(oldPos);
+      todos.lists[oldList].todos.splice(oldPos, 1);
+      todos.lists[newList].todos.splice(newPos, 0, theTodo[0])
+      localStorage.setItem("todos", JSON.stringify(todos.lists));
+
+      var i = 0;
+      $('#list-' + newList + ' div ul li input').each(function () {
+        $(this).attr('class', 'todo-' + i);
+        i++;
+      });
+      var index = 0;
+      $('#list-' + oldList + ' div ul li input').each(function () {
+        $(this).attr('class', 'todo-' + index);
+        index++;
+      });
+    }
+  })
+
+
+
+  /* -- On check --------------------------------------------------------- */
+
+  $('input[type=checkbox]').on('click', function () {
+    var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
+    var todoID = $(this).attr('class').replace('todo-', '');
+    if (todos.lists[listID].todos[todoID].status == false) {
+      todos.lists[listID].todos[todoID].status = 'checked';
+      $('#list-' + listID + ' li input.todo-' + todoID).parent('li').find('span').addClass('checked');
+    } else {
+      todos.lists[listID].todos[todoID].status = false;
+      $('#list-' + listID + ' li input.todo-' + todoID).parent('li').find('span').removeClass('checked');
+
+    }
+
+    localStorage.setItem("todos", JSON.stringify(todos.lists));
+
+  })
+
+  /* -- On update(todo) -------------------------------------------------- */
+
+  $("span[contenteditable=true]").on('blur', function () {
+    var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
+    var todoID = $(this).parent('li').find('input').attr('class').replace('todo-', '');
+
+    todos.lists[listID].todos[todoID].text = $(this).html();
+
+    localStorage.setItem("todos", JSON.stringify(todos.lists));
+  })
+
+
+
+
+  /* -- On update(title) ------------------------------------------------- */
+
+  $("article div h3").on('blur', function () {
+    var listID = $(this).parent('div').parent('article').attr('id').replace('list-', '');
+
+    todos.lists[listID].title = $(this).html();
+
+    localStorage.setItem("todos", JSON.stringify(todos.lists));
+  })
+
+
+
+  /* -- On delete(list) -------------------------------------------------- */
+
+  $('nav .delete').on('click', function () {
+    var listID = $(this).parent('nav').parent('div').parent('article').attr('id').replace('list-', '');
+
+    todos.lists.splice(listID, 1);
+
+    if (todos.lists.length == 0) {
+      localStorage.clear('todos');
+    } else {
+      localStorage.setItem("todos", JSON.stringify(todos.lists));
+    }
+
+    $(this).parent('nav').parent('div').parent('article').fadeOut(200, function (index) {
+      $(this).remove();
+
+      $('article').each(function () {
+        var currentID = $(this).attr('id').replace('list-', '');
+        if (currentID > listID) {
+          var newID = currentID - 1;
+
+          $(this).attr('id', 'list-' + newID);
+        }
+      });
+    });
+
+  })
+
+
+
+  /* -- On delete(todo) -------------------------------------------------- */
+
+
+  $('li .delete').on('click', function () {
+    var todoID = $(this).parent('li').find('input').attr('class').replace('todo-', '');
+    var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
+
+    todos.lists[listID].todos.splice(todoID, 1);
+
+    localStorage.setItem("todos", JSON.stringify(todos.lists));
+
+    $(this).parent('li').fadeOut(200, function (index) {
+      $(this).remove();
+
+      $('#list-' + listID + ' div ul li').each(function () {
+        var currentID = $(this).find('input').attr('class').replace('todo-', '');
+        if (currentID > todoID) {
+          var newID = currentID - 1;
+
+          $(this).find('input').attr('class', 'todo-' + newID);
+        }
+      });
+    });
+  })
+
 
 }
 
@@ -202,172 +382,3 @@ $('.new-list').on('click', function (event) {
 
 /* -- New positon(list) ------------------------------------------------ */
 
-$('#todo-lists').on("sortstop", function (event, ui) {
-  if (event.target.nodeName == 'DIV') {
-    var newPosition = ui.item.index();
-    var oldPosition = ui.item.attr('id').replace('list-', '');
-
-
-    var theList = todos.lists.slice(oldPosition);
-    todos.lists.splice(oldPosition, 1);
-    todos.lists.splice(newPosition, 0, theList[0])
-    localStorage.setItem("todos", JSON.stringify(todos.lists));
-
-    var i = 0;
-    $('#todo-lists article').each(function () {
-      $(this).attr('id', 'list-' + i);
-      i++;
-    });
-  }
-});
-
-
-
-/* -- New positon(todo) ------------------------------------------------ */
-
-
-$('ul').on("sortstop", function (event, ui) {
-  if (event.target.nodeName == 'UL') {
-    var oldPos = ui.item.find('input').attr('class').replace('todo-', '');
-    var newPos = ui.item.index();
-    var theList = ui.item.parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
-
-    var theTodo = todos.lists[theList].todos.slice(oldPos);
-    todos.lists[theList].todos.splice(oldPos, 1);
-    todos.lists[theList].todos.splice(newPos, 0, theTodo[0])
-    localStorage.setItem("todos", JSON.stringify(todos.lists));
-
-    var i = 0;
-    $('#list-' + theList + ' ul li input').each(function () {
-      $(this).attr('class', 'todo-' + i);
-      i++;
-    });
-  }
-});
-
-$('ul').on("sortreceive", function (event, ui) {
-  if (event.target.nodeName == 'UL') {
-    var oldPos = ui.item.find('input').attr('class').replace('todo-', '');
-    var oldList = ui.sender.parent('div').parent('article').attr('id').replace('list-', '');
-
-    var newList = ui.item.parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
-    var newPos = ui.item.index();
-
-    var theTodo = todos.lists[oldList].todos.slice(oldPos);
-    todos.lists[oldList].todos.splice(oldPos, 1);
-    todos.lists[newList].todos.splice(newPos, 0, theTodo[0])
-    localStorage.setItem("todos", JSON.stringify(todos.lists));
-
-    var i = 0;
-    $('#list-' + newList + ' div ul li input').each(function () {
-      $(this).attr('class', 'todo-' + i);
-      i++;
-    });
-    var index = 0;
-    $('#list-' + oldList + ' div ul li input').each(function () {
-      $(this).attr('class', 'todo-' + index);
-      index++;
-    });
-  }
-})
-
-
-
-/* -- On check --------------------------------------------------------- */
-
-$('input[type=checkbox]').on('click', function () {
-  var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
-  var todoID = $(this).attr('class').replace('todo-', '');
-  if (todos.lists[listID].todos[todoID].status == false) {
-    todos.lists[listID].todos[todoID].status = 'checked';
-    $('#list-' + listID + ' li input.todo-' + todoID).parent('li').find('span').addClass('checked');
-  } else {
-    todos.lists[listID].todos[todoID].status = false;
-    $('#list-' + listID + ' li input.todo-' + todoID).parent('li').find('span').removeClass('checked');
-
-  }
-
-  localStorage.setItem("todos", JSON.stringify(todos.lists));
-
-})
-
-/* -- On update(todo) -------------------------------------------------- */
-
-$("span[contenteditable=true]").on('blur', function () {
-  var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
-  var todoID = $(this).parent('li').find('input').attr('class').replace('todo-', '');
-
-  todos.lists[listID].todos[todoID].text = $(this).html();
-
-  localStorage.setItem("todos", JSON.stringify(todos.lists));
-})
-
-
-
-
-/* -- On update(title) ------------------------------------------------- */
-
-$("article div h3").on('blur', function () {
-  var listID = $(this).parent('div').parent('article').attr('id').replace('list-', '');
-
-  todos.lists[listID].title = $(this).html();
-
-  localStorage.setItem("todos", JSON.stringify(todos.lists));
-})
-
-
-
-/* -- On delete(list) -------------------------------------------------- */
-
-$('nav .delete').on('click', function () {
-  var listID = $(this).parent('nav').parent('div').parent('article').attr('id').replace('list-', '');
-
-  todos.lists.splice(listID, 1);
-
-  if (todos.lists.length == 0) {
-    localStorage.clear('todos');
-  } else {
-    localStorage.setItem("todos", JSON.stringify(todos.lists));
-  }
-
-  $(this).parent('nav').parent('div').parent('article').fadeOut(200, function (index) {
-    $(this).remove();
-
-    $('article').each(function () {
-      var currentID = $(this).attr('id').replace('list-', '');
-      if (currentID > listID) {
-        var newID = currentID - 1;
-
-        $(this).attr('id', 'list-' + newID);
-      }
-    });
-  });
-
-})
-
-
-
-/* -- On delete(todo) -------------------------------------------------- */
-
-
-$('li .delete').on('click', function () {
-  var todoID = $(this).parent('li').find('input').attr('class').replace('todo-', '');
-  var listID = $(this).parent('li').parent('ul').parent('div').parent('article').attr('id').replace('list-', '');
-
-  todos.lists[listID].todos.splice(todoID, 1);
-
-  localStorage.setItem("todos", JSON.stringify(todos.lists));
-
-  $(this).parent('li').fadeOut(200, function (index) {
-    $(this).remove();
-
-    $('#list-' + listID + ' div ul li').each(function () {
-      var currentID = $(this).find('input').attr('class').replace('todo-', '');
-      if (currentID > todoID) {
-        var newID = currentID - 1;
-
-        $(this).find('input').attr('class', 'todo-' + newID);
-      }
-    });
-  });
-})
