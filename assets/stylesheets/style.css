@@ -1,8 +1,6 @@
 .wrapper {
-	width: 92%;
 	margin: 20px auto;
-	min-width: 960px;
-	max-width: 1260px; }
+}
 
 header {
 	width: 97%;
@@ -150,49 +148,6 @@ input.add-todo {
 
 
 /* --- Other ------------------------------------------------------------------------ */
-
-#help {
-	margin: 10% auto;
-	padding: 15px 25px;
-	width: 500px;
-	height: auto;
-	overflow: auto;
-	background-image: -webkit-gradient(
-			linear,
-			left bottom,
-			left top,
-			color-stop(1, rgb(255,255,255)),
-			color-stop(0, rgb(245,245,245))
-	);
-	background-image: -moz-linear-gradient(
-			center bottom,
-			rgb(255,255,255) 100%,
-			rgb(245,245,245) 0%
-	);
-	border: 1px dashed rgb(17,27,46);
-	-webkit-box-shadow: 0 0 6px #000;
-	-moz-box-shadow: 0 0 6px #000;
-	border-radius: 5px;
-	-moz-border-radius: 5px; }
-
-#help h3 {
-	font-size: 16px;
-	font-weight: bold;
-	font-family: helvetica;
-	text-transform: uppercase;
-	color: #222;
-	text-shadow: 0 1px #fff;
-	margin: 40px 0 5px 0; }
-
-#help p {
-	font-size: 13px;
-	color: #333;
-	margin-bottom: 20px;
-	text-align: justify;
-	text-shadow: 0 1px #fff; }
-
-#help p a { color: red; }
-
 .button {
 	font-family: helvetica;
 	font-size: 12px;
@@ -242,25 +197,3 @@ input.add-todo {
 	left: 0;
 	text-align: center;
 }
-
-.github {
-	position: absolute;
-	bottom: 14px;
-	right: 55px;
-	color: #ccc;
-	font-size: 13px;
-}
-
-#html5_bg {
-	z-index: -1;
-	position: absolute;
-	top: 40%;
-	width: 100%;
-	text-align: center;
-	#text-transform: uppercase; }
-
-#html5_bg p {
-	font-size: 120px;
-	font-weight: bold;
-	color: rgb(17,27,55);
-	text-shadow: 0 -1px #000, 0 1px rgb(17,27,75); }
